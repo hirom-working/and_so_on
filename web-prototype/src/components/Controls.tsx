@@ -6,7 +6,7 @@ interface ControlsProps {
     onStop: () => void
 }
 
-export const Controls = ({ isPlaying, onPlay, onStop }: ControlsProps) => {
+export const Controls = ({ onPlay, onStop }: ControlsProps) => {
     return (
         <div className="w-full h-full flex items-end justify-center gap-4 px-8 pb-4 bg-[#cfc5b5] rounded-b-[30px] shadow-inner relative">
             {/* Button Well/Depression */}
