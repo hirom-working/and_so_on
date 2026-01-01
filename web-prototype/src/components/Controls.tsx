@@ -15,7 +15,6 @@ export const Controls = ({ isPlaying, onPlay, onStop }: ControlsProps) => {
             {/* Play Button - Accent Color */}
             <PianoKey
                 icon={<Play size={20} fill="currentColor" />}
-                label="PLAY"
                 onClick={onPlay}
                 active={isPlaying}
                 colorClass="bg-retro-primary text-white"
@@ -25,7 +24,6 @@ export const Controls = ({ isPlaying, onPlay, onStop }: ControlsProps) => {
             {/* Stop Button - Neutral */}
             <PianoKey
                 icon={<Square size={18} fill="currentColor" />}
-                label="STOP"
                 onClick={onStop}
                 active={!isPlaying}
                 colorClass="bg-[#e0e0e0] text-retro-dark"
@@ -35,7 +33,6 @@ export const Controls = ({ isPlaying, onPlay, onStop }: ControlsProps) => {
             {/* Settings Button - Neutral */}
             <PianoKey
                 icon={<Settings size={18} />}
-                label="SET"
                 onClick={() => { }}
                 active={false} // Momentary switch usually
                 colorClass="bg-[#e0e0e0] text-retro-dark"
