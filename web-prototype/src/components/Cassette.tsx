@@ -47,7 +47,7 @@ export const Cassette = ({ isPlaying }: CassetteProps) => {
                     <div className="absolute top-0 w-full h-8 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
 
                     {/* Handwritten Label - On white label area below stripes */}
-                    <div className="absolute top-[18px] left-0 right-0 flex justify-center z-20">
+                    <div className="absolute top-[6px] left-0 right-0 flex justify-center z-20">
                         <div
                             className="font-handwriting text-[#1a1a1a] text-[11px] tracking-wide -rotate-[0.5deg]"
                             style={{
