@@ -44,14 +44,13 @@ export const Controls = ({ isPlaying, onPlay, onStop }: ControlsProps) => {
 
 interface PianoKeyProps {
     icon: React.ReactNode
-    label: string
     onClick: () => void
     active: boolean
     colorClass: string
     activeColorClass: string
 }
 
-const PianoKey = ({ icon, label, onClick, active, colorClass, activeColorClass }: PianoKeyProps) => {
+const PianoKey = ({ icon, onClick, active, colorClass, activeColorClass }: PianoKeyProps) => {
     return (
         <button
             onClick={onClick}
