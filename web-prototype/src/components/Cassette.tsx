@@ -1,5 +1,4 @@
-import { useRef, useEffect } from 'react'
-import { Settings } from 'lucide-react'
+// Imports removed as they were unused
 
 interface CassetteProps {
     isPlaying: boolean
