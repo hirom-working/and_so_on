@@ -65,11 +65,11 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           {/* Credits */}
           <section>
             <h3 className="text-xs font-bold text-retro-dark/50 uppercase tracking-wider mb-2">クレジット</h3>
-            <div className="space-y-1.5">
+            <div className="space-y-0">
               {credits.map((credit) => (
                 <div
                   key={credit.name}
-                  className="flex items-center justify-between py-1.5 px-2"
+                  className="flex items-center justify-between py-0.5 px-2"
                 >
                   <span className="text-sm text-retro-dark">{credit.name}</span>
                   <span className="text-xs text-retro-dark/40">{credit.role}</span>
@@ -81,14 +81,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           {/* Libraries */}
           <section>
             <h3 className="text-xs font-bold text-retro-dark/50 uppercase tracking-wider mb-2">使用ライブラリ</h3>
-            <div className="space-y-1.5">
+            <div className="space-y-0">
               {libraries.map((lib) => (
                 <a
                   key={lib.name}
                   href={lib.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-retro-dark/5 transition-colors group"
+                  className="flex items-center justify-between py-0.5 px-2 rounded-lg hover:bg-retro-dark/5 transition-colors group"
                 >
                   <span className="text-sm text-retro-dark">{lib.name}</span>
                   <span className="text-xs text-retro-dark/40 group-hover:text-retro-dark/60">{lib.license}</span>
