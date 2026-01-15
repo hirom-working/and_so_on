@@ -1,33 +1,62 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface VUMeterProps {
     isPlaying: boolean
+    audioLevel?: number // 0-1 range, actual audio level from analyser
 }
 
-export const VUMeter = ({ isPlaying }: VUMeterProps) => {
+export const VUMeter = ({ isPlaying, audioLevel = 0 }: VUMeterProps) => {
     const [needleRotation, setNeedleRotation] = useState(-45)
+    const targetRotationRef = useRef(-45)
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
+    // Update target rotation when audioLevel changes
     useEffect(() => {
-        if (!isPlaying) {
-            // Smooth return to rest position with damping
-            const returnInterval = setInterval(() => {
-                setNeedleRotation(prev => {
-                    const diff = -45 - prev
-                    if (Math.abs(diff) < 0.5) return -45
-                    return prev + diff * 0.1
-                })
-            }, 30)
-            return () => clearInterval(returnInterval)
+        if (isPlaying) {
+            // Convert audio level to needle rotation (-45 to +45 degrees)
+            // Linear mapping for small audio levels:
+            // 0.00 -> -45deg (-20dB)
+            // 0.05 -> 0deg (0dB)
+            // 0.10 -> +45deg (+6dB)
+            targetRotationRef.current = Math.max(-45, Math.min(45, (audioLevel / 0.05) * 45 - 45))
+        } else {
+            // Rest position when not playing
+            targetRotationRef.current = -45
+        }
+    }, [audioLevel, isPlaying])
+
+    // Animation loop - runs continuously when playing
+    useEffect(() => {
+        // Clear any existing interval
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current)
+            intervalRef.current = null
         }
 
-        const interval = setInterval(() => {
-            // More organic jitter for realism with inertia
-            const target = -25 + (Math.random() * 35) + (Math.sin(Date.now() / 200) * 10)
-            setNeedleRotation(prev => prev + (target - prev) * 0.12)
-        }, 40)
+        // Smooth needle movement with inertia (VU meter characteristic)
+        // VU meters have ~300ms integration time
+        intervalRef.current = setInterval(() => {
+            setNeedleRotation(prev => {
+                const target = targetRotationRef.current
+                const diff = target - prev
 
-        return () => clearInterval(interval)
-    }, [isPlaying])
+                // Stop updating if close enough to target
+                if (Math.abs(diff) < 0.1) return target
+
+                // VU meter characteristic: faster rise, slower fall
+                // Rise time ~300ms, fall time ~300ms (but feels slower due to gravity simulation)
+                const speed = diff > 0 ? 0.2 : 0.12
+                return prev + diff * speed
+            })
+        }, 16) // ~60fps for smoother animation
+
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current)
+                intervalRef.current = null
+            }
+        }
+    }, []) // Run only once on mount
 
     return (
         <div className="w-full h-full relative">

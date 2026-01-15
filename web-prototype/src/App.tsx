@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Cassette } from './components/Cassette'
 import { VUMeter } from './components/VUMeter'
 import { TimeDial } from './components/TimeDial'
@@ -6,11 +6,19 @@ import { Controls } from './components/Controls'
 
 function App() {
   const [isPlaying, setIsPlaying] = useState(false)
-  const [duration, setDuration] = useState(30)
+  const [duration, setDuration] = useState(30) // Set duration (minutes)
+  const [remainingTime, setRemainingTime] = useState(30) // Remaining time (minutes, can be fractional)
+  const [audioLevel, setAudioLevel] = useState(0) // Audio level for VU meter (0-1)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const timerRef = useRef<number | null>(null)
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const analyserRef = useRef<AnalyserNode | null>(null)
+  const animationFrameRef = useRef<number | null>(null)
+  const sourceCreatedRef = useRef(false)
 
   useEffect(() => {
     const audio = new Audio('./audio.m4a')
+    audio.crossOrigin = 'anonymous'
     audioRef.current = audio
 
     audio.addEventListener('ended', () => {
@@ -20,11 +28,113 @@ function App() {
     return () => {
       audio.pause()
       audio.src = ''
+      if (audioContextRef.current) {
+        audioContextRef.current.close()
+      }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
     }
   }, [])
 
+  // Audio level analysis
+  useEffect(() => {
+    if (!isPlaying || !audioRef.current) {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+        animationFrameRef.current = null
+      }
+      return
+    }
+
+    // Initialize AudioContext on first play (requires user interaction)
+    if (!audioContextRef.current) {
+      audioContextRef.current = new AudioContext()
+      analyserRef.current = audioContextRef.current.createAnalyser()
+      analyserRef.current.fftSize = 256
+      analyserRef.current.smoothingTimeConstant = 0.8
+    }
+
+    // Connect audio element to analyser (only once)
+    if (!sourceCreatedRef.current && audioRef.current && audioContextRef.current && analyserRef.current) {
+      const source = audioContextRef.current.createMediaElementSource(audioRef.current)
+      source.connect(analyserRef.current)
+      analyserRef.current.connect(audioContextRef.current.destination)
+      sourceCreatedRef.current = true
+    }
+
+    // Resume audio context if suspended
+    if (audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume()
+    }
+
+    // Analyze audio level
+    const analyzeLevel = () => {
+      if (!analyserRef.current || !isPlaying) return
+
+      const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount)
+      analyserRef.current.getByteFrequencyData(dataArray)
+
+      // Calculate average frequency amplitude (more visible response than time domain)
+      let sum = 0
+      for (let i = 0; i < dataArray.length; i++) {
+        sum += dataArray[i]
+      }
+      const average = sum / dataArray.length
+      // Normalize to 0-1 range (frequency data is 0-255)
+      const normalizedLevel = average / 255
+      setAudioLevel(normalizedLevel)
+      animationFrameRef.current = requestAnimationFrame(analyzeLevel)
+    }
+
+    analyzeLevel()
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
+    }
+  }, [isPlaying])
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (isPlaying && remainingTime > 0) {
+      timerRef.current = window.setInterval(() => {
+        setRemainingTime(prev => {
+          const newTime = prev - (1 / 60) // Decrease by 1 second (1/60 minute)
+          if (newTime <= 0) {
+            // Time's up - stop playback
+            if (audioRef.current) {
+              audioRef.current.pause()
+              audioRef.current.currentTime = 0
+            }
+            setIsPlaying(false)
+            return 0
+          }
+          return newTime
+        })
+      }, 1000) // Update every second
+    } else {
+      if (timerRef.current) {
+        clearInterval(timerRef.current)
+        timerRef.current = null
+      }
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current)
+      }
+    }
+  }, [isPlaying, remainingTime])
+
+  const handleDurationChange = useCallback((value: number) => {
+    setDuration(value)
+    setRemainingTime(value)
+  }, [])
+
   const handlePlay = () => {
-    if (audioRef.current) {
+    if (audioRef.current && remainingTime > 0) {
       audioRef.current.play()
       setIsPlaying(true)
     }
@@ -35,6 +145,7 @@ function App() {
       audioRef.current.pause()
       audioRef.current.currentTime = 0
       setIsPlaying(false)
+      setRemainingTime(duration) // Reset to set duration
     }
   }
 
@@ -93,10 +204,10 @@ function App() {
             <div className="absolute inset-[2px] rounded-xl bg-gradient-to-b from-[#454038] to-[#3a3530] pointer-events-none" />
 
             <div className="w-1/2 relative z-10">
-              <VUMeter isPlaying={isPlaying} />
+              <VUMeter isPlaying={isPlaying} audioLevel={audioLevel} />
             </div>
             <div className="w-1/2 relative z-10">
-              <TimeDial value={duration} onChange={setDuration} />
+              <TimeDial value={remainingTime} onChange={handleDurationChange} isRunning={isPlaying} />
             </div>
           </div>
 
