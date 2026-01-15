@@ -6,8 +6,8 @@ interface SettingsModalProps {
 }
 
 const credits = [
-  { name: 'YAMASHITA Hiromu', role: 'アプリ開発' },
   { name: 'OMI Shinya', role: '環境音制作' },
+  { name: 'YAMASHITA Hiromu', role: 'アプリ開発' },
 ]
 
 
@@ -62,10 +62,10 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               {credits.map((credit) => (
                 <div
                   key={credit.name}
-                  className="flex items-center justify-between py-0.5 px-2"
+                  className="flex flex-col py-1 px-2"
                 >
+                  <span className="text-xs text-retro-dark/50">{credit.role}</span>
                   <span className="text-sm text-retro-dark">{credit.name}</span>
-                  <span className="text-xs text-retro-dark/40">{credit.role}</span>
                 </div>
               ))}
             </div>
