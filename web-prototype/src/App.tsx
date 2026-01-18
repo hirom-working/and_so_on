@@ -450,7 +450,7 @@ function App() {
           <div className="flex-1 flex items-center justify-center p-3 bg-gradient-to-b from-[#e0d6c6] to-[#d0c6b6] rounded-xl shadow-[inset_0_2px_6px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.5)] border border-white/40 relative z-10">
             {/* Deck surface texture */}
             <div className="absolute inset-0 bg-plastic-texture opacity-10 pointer-events-none rounded-xl" />
-            <Cassette isPlaying={isPlaying} />
+            <Cassette isPlaying={isPlaying} progress={duration > 0 ? (duration - remainingTime) / duration : 0} />
           </div>
 
           {/* Control Section */}

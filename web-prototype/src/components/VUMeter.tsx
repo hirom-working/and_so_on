@@ -14,11 +14,15 @@ export const VUMeter = ({ isPlaying, audioLevel = 0 }: VUMeterProps) => {
     useEffect(() => {
         if (isPlaying) {
             // Convert audio level to needle rotation (-45 to +45 degrees)
-            // Linear mapping for small audio levels:
-            // 0.00 -> -45deg (-20dB)
-            // 0.05 -> 0deg (0dB)
-            // 0.10 -> +45deg (+6dB)
-            targetRotationRef.current = Math.max(-45, Math.min(45, (audioLevel / 0.05) * 45 - 45))
+            // Using logarithmic scale for more natural VU meter response
+            // audioLevel range: 0.0 - 1.0
+            // 0.00 -> -45deg (silence)
+            // 0.15 -> -20deg (quiet)
+            // 0.35 -> 0deg (normal)
+            // 0.60 -> +25deg (loud)
+            // 0.80+ -> +45deg (very loud/clipping)
+            const scaledLevel = Math.pow(audioLevel, 0.6) // Apply curve for better dynamics
+            targetRotationRef.current = Math.max(-45, Math.min(45, scaledLevel * 120 - 45))
         } else {
             // Rest position when not playing
             targetRotationRef.current = -45

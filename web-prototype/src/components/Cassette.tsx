@@ -1,8 +1,14 @@
 interface CassetteProps {
     isPlaying: boolean
+    progress?: number // 0 (start) to 1 (end)
 }
 
-export const Cassette = ({ isPlaying }: CassetteProps) => {
+export const Cassette = ({ isPlaying, progress = 0 }: CassetteProps) => {
+    // Calculate tape amounts based on progress
+    // Left reel: full at start (progress=0), empty at end (progress=1)
+    // Right reel: empty at start (progress=0), full at end (progress=1)
+    const leftTapeRatio = 1 - progress
+    const rightTapeRatio = progress
     return (
         <div className="w-full aspect-[1.6/1] bg-[#1a1a1a] rounded-lg p-1.5 shadow-2xl relative overflow-hidden">
             {/* Outer Shell Bevel */}
@@ -71,7 +77,7 @@ export const Cassette = ({ isPlaying }: CassetteProps) => {
                         </div>
 
                         {/* Reel Left */}
-                        <Reel isPlaying={isPlaying} tapeAmount="large" />
+                        <Reel isPlaying={isPlaying} tapeRatio={leftTapeRatio} />
 
                         {/* Center Tape Path */}
                         <div className="w-full h-10 relative z-0 flex items-center justify-center">
@@ -82,7 +88,7 @@ export const Cassette = ({ isPlaying }: CassetteProps) => {
                         </div>
 
                         {/* Reel Right */}
-                        <Reel isPlaying={isPlaying} tapeAmount="small" />
+                        <Reel isPlaying={isPlaying} tapeRatio={rightTapeRatio} />
                     </div>
                 </div>
 
@@ -120,23 +126,37 @@ const GuideHole = () => (
     </div>
 )
 
-const Reel = ({ isPlaying, tapeAmount }: { isPlaying: boolean, tapeAmount: 'large' | 'small' }) => {
-    const tapeSize = tapeAmount === 'large' ? 'w-11 h-11' : 'w-8 h-8'
-    const tapeSizeInner = tapeAmount === 'large' ? 'w-10 h-10' : 'w-7 h-7'
+const Reel = ({ isPlaying, tapeRatio }: { isPlaying: boolean, tapeRatio: number }) => {
+    // tapeRatio: 0 (empty) to 1 (full)
+    // Size ranges from 28px (empty) to 44px (full)
+    const minSize = 28
+    const maxSize = 44
+    const size = minSize + (maxSize - minSize) * tapeRatio
+    const innerSize = size - 4
 
     return (
         <div className={`relative z-10 flex items-center justify-center ${isPlaying ? 'animate-spin-slow' : ''}`}>
             {/* Outer shadow ring */}
-            <div className={`absolute ${tapeSize} rounded-full bg-black/30 blur-[2px] translate-y-[1px]`} />
+            <div
+                className="absolute rounded-full bg-black/30 blur-[2px] translate-y-[1px]"
+                style={{ width: size, height: size }}
+            />
 
             {/* Tape Roll (Dark Brown Magnetic Tape) */}
-            <div className={`${tapeSizeInner} rounded-full bg-gradient-to-br from-[#4a3828] via-[#3d2b1f] to-[#2a1d15] shadow-lg flex items-center justify-center transition-all duration-1000 border border-[#1a1008] relative`}>
+            <div
+                className="rounded-full bg-gradient-to-br from-[#4a3828] via-[#3d2b1f] to-[#2a1d15] shadow-lg flex items-center justify-center transition-all duration-300 border border-[#1a1008] relative"
+                style={{ width: innerSize, height: innerSize }}
+            >
                 {/* Tape shine effect */}
                 <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/10 to-transparent pointer-events-none" />
 
-                {/* Tape rings (depth effect) */}
-                <div className="absolute inset-[3px] rounded-full border border-[#2a1d15]/50" />
-                <div className="absolute inset-[6px] rounded-full border border-[#2a1d15]/30" />
+                {/* Tape rings (depth effect) - only show if there's enough tape */}
+                {tapeRatio > 0.3 && (
+                    <div className="absolute inset-[3px] rounded-full border border-[#2a1d15]/50" />
+                )}
+                {tapeRatio > 0.5 && (
+                    <div className="absolute inset-[6px] rounded-full border border-[#2a1d15]/30" />
+                )}
 
                 {/* Reel Hub (Metallic) */}
                 <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#f0f0f0] via-[#d0d0d0] to-[#a0a0a0] relative shadow-[0_1px_3px_rgba(0,0,0,0.4),inset_0_1px_2px_rgba(255,255,255,0.8)]">
