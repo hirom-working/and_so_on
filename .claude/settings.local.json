@@ -22,7 +22,10 @@
       "Bash(wrangler:*)",
       "Bash(echo $CLOUDFLARE_API_TOKEN)",
       "Bash(ffmpeg:*)",
-      "Bash(gh run watch:*)"
+      "Bash(gh run watch:*)",
+      "Bash(find:*)",
+      "Bash(npx cap sync:*)",
+      "Bash(npx cap open ios)"
     ]
   }
 }
